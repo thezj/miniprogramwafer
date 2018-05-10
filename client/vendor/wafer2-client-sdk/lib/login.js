@@ -104,12 +104,17 @@ var login = function login(options) {
             success: function (result) {
                 var data = result.data;
 
+
                 // 成功地响应会话信息
                 if (data && data.code === 0 && data.data.skey) {
                     var res = data.data
                     if (res.userinfo) {
                         Session.set(res.skey);
-                        options.success(userInfo);
+
+
+                        console.log(data.data.userinfo,'userinfo111')
+                        options.success(data.data.userinfo);
+                        
                     } else {
                         var errorMessage = '登录失败(' + data.error + ')：' + (data.message || '未知错误');
                         var noSessionError = new LoginError(constants.ERR_LOGIN_SESSION_NOT_RECEIVED, errorMessage);
