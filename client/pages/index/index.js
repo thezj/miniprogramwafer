@@ -75,7 +75,7 @@ Page({
                 util.showSuccess('请求成功完成')
                 console.log(result)
                 if (result.data.data !== true) {
-                    util.showSuccess('你已经很讨厌它了');
+                    util.showSuccess('你已经很喜欢了');
                 } else {
                     that.getGame()
                 }
