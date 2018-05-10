@@ -16,6 +16,7 @@ Page({
         let that = this
         this.getGame()
         this.login()
+
     },
 
     getGame() {
@@ -43,9 +44,11 @@ Page({
         let that = this
         //游戏的不喜欢数量加一
         let gameid = event.currentTarget.dataset.game.id
+        console.log(this.data.userInfo)
+
         qcloud.request({
             url: `${config.service.host}/weapp/dislikeGame?id=${gameid}&openId=${this.data.userInfo.openId}`,
-            login: false,
+            login: true,
             success(result) {
                 util.showSuccess('请求成功完成')
                 console.log(result)
@@ -68,9 +71,10 @@ Page({
         let that = this
         //游戏的不喜欢数量加一
         let gameid = event.currentTarget.dataset.game.id
+        console.log(this.data.userInfo)
         qcloud.request({
             url: `${config.service.host}/weapp/likeGame?id=${gameid}&openId=${this.data.userInfo.openId}`,
-            login: false,
+            login: true,
             success(result) {
                 util.showSuccess('请求成功完成')
                 console.log(result)
@@ -96,38 +100,22 @@ Page({
         var that = this
 
         // 调用登录接口
-        qcloud.login({
+        qcloud.request({
+            url: config.service.requestUrl,
+            login: true,
             success(result) {
-                if (result) {
-                    util.showSuccess('1登录成功')
-                    that.setData({
-                        userInfo: result,
-                        logged: true
-                    })
-                } else {
-                    // 如果不是首次登录，不会返回用户信息，请求用户信息接口获取
-                    qcloud.request({
-                        url: config.service.requestUrl,
-                        login: true,
-                        success(result) {
-                            util.showSuccess('2登录成功')
-                            that.setData({
-                                userInfo: result.data.data,
-                                logged: true
-                            })
-                        },
+                util.showSuccess('2登录成功')
+                console.log('用户信息2', result.data.data)
 
-                        fail(error) {
-                            util.showModel('请求失败', error)
-                            console.log('request fail', error)
-                        }
-                    })
-                }
+                that.setData({
+                    userInfo: result.data.data,
+                    logged: true
+                })
             },
 
             fail(error) {
-                util.showModel('登录失败', error)
-                console.log('登录失败', error)
+                util.showModel('请求失败', error)
+                console.log('request fail', error)
             }
         })
     },
