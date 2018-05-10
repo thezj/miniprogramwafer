@@ -9,48 +9,54 @@ Page({
         logged: false,
         takeSession: false,
         requestResult: '',
-        games:[]
+        games: []
     },
-    onReady(){
+    onReady() {
 
         let that = this
         this.getGame()
+        this.login()
     },
 
-    getGame(){
-        
+    getGame() {
+
         let that = this
         //获取游戏
         qcloud.request({
             url: `${config.service.host}/weapp/getgame`,
             login: false,
-            success (result) {
+            success(result) {
                 util.showSuccess('请求成功完成')
 
                 that.setData({
                     games: result.data.data
                 })
             },
-            fail (error) {
+            fail(error) {
                 util.showModel('请求失败', error);
                 console.log('request fail', error);
             }
         })
     },
 
-    increasedislike(event){
+    increasedislike(event) {
         let that = this
         //游戏的不喜欢数量加一
         let gameid = event.currentTarget.dataset.game.id
         qcloud.request({
-            url: `${config.service.host}/weapp/dislikeGame?id=${gameid}`,
+            url: `${config.service.host}/weapp/dislikeGame?id=${gameid}&openId=${this.data.userInfo.openId}`,
             login: false,
-            success (result) {
+            success(result) {
                 util.showSuccess('请求成功完成')
                 console.log(result)
-                that.getGame()
+
+                if (result.data.data !== true) {
+                    util.showSuccess('你已经很讨厌它了');
+                } else {
+                    that.getGame()
+                }
             },
-            fail (error) {
+            fail(error) {
                 util.showModel('请求失败', error);
                 console.log('request fail', error);
             }
@@ -58,19 +64,23 @@ Page({
 
     },
 
-    increaselike(event){
+    increaselike(event) {
         let that = this
         //游戏的不喜欢数量加一
         let gameid = event.currentTarget.dataset.game.id
         qcloud.request({
-            url: `${config.service.host}/weapp/likeGame?id=${gameid}`,
+            url: `${config.service.host}/weapp/likeGame?id=${gameid}&openId=${this.data.userInfo.openId}`,
             login: false,
-            success (result) {
+            success(result) {
                 util.showSuccess('请求成功完成')
                 console.log(result)
-                that.getGame()
+                if (result.data.data !== true) {
+                    util.showSuccess('你已经很讨厌它了');
+                } else {
+                    that.getGame()
+                }
             },
-            fail (error) {
+            fail(error) {
                 util.showModel('请求失败', error);
                 console.log('request fail', error);
             }
@@ -79,7 +89,7 @@ Page({
     },
 
     // 用户登录示例
-    login: function() {
+    login: function () {
         if (this.data.logged) return
 
         util.showBusy('正在登录')
@@ -89,7 +99,7 @@ Page({
         qcloud.login({
             success(result) {
                 if (result) {
-                    util.showSuccess('登录成功')
+                    util.showSuccess('1登录成功')
                     that.setData({
                         userInfo: result,
                         logged: true
@@ -100,7 +110,7 @@ Page({
                         url: config.service.requestUrl,
                         login: true,
                         success(result) {
-                            util.showSuccess('登录成功')
+                            util.showSuccess('2登录成功')
                             that.setData({
                                 userInfo: result.data.data,
                                 logged: true
@@ -136,21 +146,21 @@ Page({
         var options = {
             url: config.service.requestUrl,
             login: true,
-            success (result) {
+            success(result) {
                 util.showSuccess('请求成功完成')
                 console.log('request success', result)
                 that.setData({
                     requestResult: JSON.stringify(result.data)
                 })
             },
-            fail (error) {
+            fail(error) {
                 util.showModel('请求失败', error);
                 console.log('request fail', error);
             }
         }
-        if (this.data.takeSession) {  // 使用 qcloud.request 带登录态登录
+        if (this.data.takeSession) { // 使用 qcloud.request 带登录态登录
             qcloud.request(options)
-        } else {    // 使用 wx.request 则不带登录态
+        } else { // 使用 wx.request 则不带登录态
             wx.request(options)
         }
     },
@@ -164,7 +174,7 @@ Page({
             count: 1,
             sizeType: ['compressed'],
             sourceType: ['album', 'camera'],
-            success: function(res){
+            success: function (res) {
                 util.showBusy('正在上传')
                 var filePath = res.tempFilePaths[0]
 
@@ -174,7 +184,7 @@ Page({
                     filePath: filePath,
                     name: 'file',
 
-                    success: function(res){
+                    success: function (res) {
                         util.showSuccess('上传图片成功')
                         console.log(res)
                         res = JSON.parse(res.data)
@@ -184,13 +194,13 @@ Page({
                         })
                     },
 
-                    fail: function(e) {
+                    fail: function (e) {
                         util.showModel('上传图片失败')
                     }
                 })
 
             },
-            fail: function(e) {
+            fail: function (e) {
                 console.error(e)
             }
         })
@@ -224,13 +234,17 @@ Page({
         tunnel.on('connect', () => {
             util.showSuccess('信道已连接')
             console.log('WebSocket 信道已连接')
-            this.setData({ tunnelStatus: 'connected' })
+            this.setData({
+                tunnelStatus: 'connected'
+            })
         })
 
         tunnel.on('close', () => {
             util.showSuccess('信道已断开')
             console.log('WebSocket 信道已断开')
-            this.setData({ tunnelStatus: 'closed' })
+            this.setData({
+                tunnelStatus: 'closed'
+            })
         })
 
         tunnel.on('reconnecting', () => {
@@ -257,7 +271,9 @@ Page({
         // 打开信道
         tunnel.open()
 
-        this.setData({ tunnelStatus: 'connecting' })
+        this.setData({
+            tunnelStatus: 'connecting'
+        })
     },
 
     /**
@@ -282,6 +298,8 @@ Page({
             this.tunnel.close();
         }
         util.showBusy('信道连接中...')
-        this.setData({ tunnelStatus: 'closed' })
+        this.setData({
+            tunnelStatus: 'closed'
+        })
     }
 })
